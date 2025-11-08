@@ -1,11 +1,15 @@
 import { Model } from 'mongoose';
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from 'src/models/user.schema';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private jwtService: JwtService
+  ) { }
 
   async create(userData: Partial<User>): Promise<UserDocument> {
     try {
@@ -36,13 +40,18 @@ export class UserService {
     return this.userModel.find().exec();
   }
 
-  async validateUser(name: string, password: string): Promise<UserDocument | null> {
-    const user = await this.userModel.findOne({ name }).exec();
-
-    if (user && await user.validatePassword(password)) {
-      return user;
+  async validateUser(
+    name: string,
+    pass: string,
+  ): Promise<{ access_token: string }> {
+    const user = await this.userModel.findOne({name: name});
+    if (user?.password !== pass) {
+      throw new UnauthorizedException();
     }
-    return null;
+    const payload = { sub: user.id, username: user.name };
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
 
   async addFingerprint(userId: string, fingerprintId: number): Promise<UserDocument | null> {

@@ -203,9 +203,7 @@ export class UsersController {
         return {
             success: true,
             data: {
-                id: user._id,
-                name: user.name,
-                fingerprints: user.fingerprints
+                token: user
             }
         };
     }
