@@ -6,9 +6,13 @@ import {
     Delete,
     Body,
     Param,
-    NotFoundException
+    NotFoundException,
+    UseGuards
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
+
+import { JwtAuthGuard } from '../auth/auth.guard';
+import { OwnershipGuard } from '../auth/ownership.guard';
 
 class CreateUserDto {
     name: string;
@@ -18,10 +22,6 @@ class CreateUserDto {
 class UpdateUserDto {
     name?: string;
     password?: string;
-}
-
-class AddFingerprintDto {
-    fingerprintId: number;
 }
 
 @Controller('users')
@@ -36,8 +36,7 @@ export class UsersController {
                 success: true,
                 data: {
                     id: user._id,
-                    name: user.name,
-                    fingerprints: user.fingerprints
+                    name: user.name
                 }
             };
         } catch (error) {
@@ -48,6 +47,7 @@ export class UsersController {
         }
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get()
     async findAll() {
         const users = await this.usersService.findAll();
@@ -55,12 +55,12 @@ export class UsersController {
             success: true,
             data: users.map(user => ({
                 id: user._id,
-                name: user.name,
-                fingerprints: user.fingerprints
+                name: user.name
             }))
         };
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get(':id')
     async findOne(@Param('id') id: string) {
         const user = await this.usersService.findById(id);
@@ -74,12 +74,12 @@ export class UsersController {
             success: true,
             data: {
                 id: user._id,
-                name: user.name,
-                fingerprints: user.fingerprints
+                name: user.name
             }
         };
     }
 
+    @UseGuards(JwtAuthGuard, OwnershipGuard)
     @Put(':id')
     async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
         try {
@@ -92,8 +92,7 @@ export class UsersController {
                 success: true,
                 data: {
                     id: user._id,
-                    name: user.name,
-                    fingerprints: user.fingerprints
+                    name: user.name
                 }
             };
         } catch (error) {
@@ -104,6 +103,7 @@ export class UsersController {
         }
     }
 
+    @UseGuards(JwtAuthGuard, OwnershipGuard)
     @Delete(':id')
     async remove(@Param('id') id: string) {
         try {
@@ -118,77 +118,6 @@ export class UsersController {
                 error: error.message
             };
         }
-    }
-
-    @Post(':id/fingerprints')
-    async addFingerprint(
-        @Param('id') id: string,
-        @Body() addFingerprintDto: AddFingerprintDto
-    ) {
-        try {
-            const user = await this.usersService.addFingerprint(id, addFingerprintDto.fingerprintId);
-            if (!user) {
-                throw new NotFoundException('User not found');
-            }
-            return {
-                success: true,
-                data: {
-                    id: user._id,
-                    name: user.name,
-                    fingerprints: user.fingerprints
-                }
-            };
-        } catch (error) {
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    @Delete(':id/fingerprints/:fingerprintId')
-    async removeFingerprint(
-        @Param('id') id: string,
-        @Param('fingerprintId') fingerprintId: number
-    ) {
-        try {
-            const user = await this.usersService.removeFingerprint(id, fingerprintId);
-            if (!user) {
-                throw new NotFoundException('User not found');
-            }
-            return {
-                success: true,
-                data: {
-                    id: user._id,
-                    name: user.name,
-                    fingerprints: user.fingerprints
-                }
-            };
-        } catch (error) {
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    @Get('fingerprint/:fingerprintId')
-    async findByFingerprint(@Param('fingerprintId') fingerprintId: number) {
-        const user = await this.usersService.findByFingerprint(fingerprintId);
-        if (!user) {
-            return {
-                success: false,
-                error: 'No user found with this fingerprint'
-            };
-        }
-        return {
-            success: true,
-            data: {
-                id: user._id,
-                name: user.name,
-                fingerprints: user.fingerprints
-            }
-        };
     }
 
     @Post('auth/login')

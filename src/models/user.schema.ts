@@ -23,8 +23,11 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop([Number])
-  fingerprints: number[];
+    @Prop({ 
+    default: false,
+    select: false
+  })
+  isAdmin: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
