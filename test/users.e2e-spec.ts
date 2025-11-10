@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ExecutionContext, HttpCode, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import request from 'supertest';
-import { UsersController } from 'src/controllers/user.controller';
-import { UserService } from 'src/services/user.service';
+import { UsersController } from '../src/controllers/user.controller';
+import { UserService } from '../src/services/user.service';
 import { JwtAuthGuard } from '../src/auth/auth.guard';
 import { OwnershipGuard } from '../src/auth/ownership.guard';
 
@@ -141,8 +141,7 @@ describe('UsersController (e2e)', () => {
     });
   });
 
-  describe('Auth Required Routes', () => {
-    const testUnauthorized = (method: 'get' | 'put' | 'delete', path: string) => {
+  const testUnauthorized = (method: 'get' | 'put' | 'delete', path: string) => {
       it(`should return 401 Unauthorized for ${method.toUpperCase()} ${path} if no token is provided`, async () => {
         mockJwtAuthGuard.canActivate.mockImplementationOnce(() => {
             throw new UnauthorizedException(); 
@@ -153,6 +152,8 @@ describe('UsersController (e2e)', () => {
           .expect(401);
       });
     };
+
+  describe('Auth Required Routes', () => {
     
     describe('GET /users', () => {
       testUnauthorized('get', '/users');
@@ -201,8 +202,8 @@ describe('UsersController (e2e)', () => {
   });
 
   describe('Ownership Required Routes (PUT/DELETE)', () => {
-    // --- /users/:id (PUT) - Update User ---
     describe('PUT /users/:id', () => {
+
       testUnauthorized('put', `/users/${MOCK_USER_ID}`);
 
       it('should update the user when OwnershipGuard passes', async () => {
@@ -235,7 +236,6 @@ describe('UsersController (e2e)', () => {
       });
     });
 
-    // --- /users/:id (DELETE) - Remove User ---
     describe('DELETE /users/:id', () => {
       testUnauthorized('delete', `/users/${MOCK_USER_ID}`);
 

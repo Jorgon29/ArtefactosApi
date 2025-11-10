@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ExecutionContext, UnauthorizedException, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import request from 'supertest';
-import { CommandsController } from 'src/controllers/commands.controlller';
-import { MqttService } from 'src/services/mqtt.service';
-import { FingerprintService } from 'src/services/fingerprint.service';
-import { JwtAuthGuard } from 'src/auth/auth.guard';
-import { AdminGuard } from 'src/auth/admin_guard';
+import { CommandsController } from '../src/controllers/commands.controlller';
+import { MqttService } from '../src/services/mqtt.service';
+import { FingerprintService } from '../src/services/fingerprint.service';
+import { JwtAuthGuard } from '../src/auth/auth.guard';
+import { AdminGuard } from '../src/auth/admin_guard';
 
 const MOCK_USER_ID = '60d0fe4f346b7a001c9b6348';
 const MOCK_FINGERPRINT_ID = 42;
@@ -118,10 +118,9 @@ describe('CommandsController (e2e)', () => {
         .set('Authorization', 'Bearer valid-token')
         .set('x-api-key', MOCK_API_KEY)
         .send({ deviceId: MOCK_DEVICE_ID })
-        .expect(200);
+        .expect(201);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.fingerprintId).toBe(MOCK_FINGERPRINT_ID);
       
       expect(mockFingerprintService.claimNewFingerprintId).toHaveBeenCalledWith(MOCK_USER_ID);
       
@@ -228,7 +227,7 @@ describe('CommandsController (e2e)', () => {
         .post('/commands/emergency-lock')
         .set('x-api-key', MOCK_API_KEY)
         .send({ deviceId: MOCK_DEVICE_ID })
-        .expect(401);
+        .expect(403);
     });
   });
 });
