@@ -7,17 +7,26 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { OwnershipGuard } from '../auth/ownership.guard';
 import { AdminGuard } from '../auth/admin_guard';
+import { FingerprintService } from '../services/fingerprint.service';
+import { Fingerprint, FingerprintSchema } from '../models/fingerprint.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema },{ name: Fingerprint.name, schema: FingerprintSchema}]),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'ultra-secret-jwt-secret',
       signOptions: { expiresIn: '1d' }
     }),
   ],
   controllers: [UsersController],
-  providers: [UserService, JwtAuthGuard, OwnershipGuard, AdminGuard],
-  exports: [UserService]
+  providers: [UserService, JwtAuthGuard, OwnershipGuard, AdminGuard, FingerprintService],
+  exports: [
+    UserService,
+    JwtModule,
+    JwtAuthGuard,
+    OwnershipGuard,
+    AdminGuard,
+    FingerprintService
+  ]
 })
 export class UsersModule {}

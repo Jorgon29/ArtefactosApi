@@ -13,6 +13,7 @@ import { UserService } from '../services/user.service';
 
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { OwnershipGuard } from '../auth/ownership.guard';
+import { AdminGuard } from 'src/auth/admin_guard';
 
 class CreateUserDto {
     name: string;
@@ -28,6 +29,7 @@ class UpdateUserDto {
 export class UsersController {
     constructor(private readonly usersService: UserService) { }
 
+    @UseGuards(JwtAuthGuard, AdminGuard)
     @Post()
     async create(@Body() createUserDto: CreateUserDto) {
         try {
