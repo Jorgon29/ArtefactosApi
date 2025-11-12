@@ -7,13 +7,15 @@ import {
     Body,
     Param,
     NotFoundException,
-    UseGuards
+    UseGuards,
+    BadRequestException,
+    InternalServerErrorException
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { OwnershipGuard } from '../auth/ownership.guard';
-import { AdminGuard } from 'src/auth/admin_guard';
+import { AdminGuard } from '../auth/admin_guard';
 
 class CreateUserDto {
     name: string;
@@ -42,10 +44,11 @@ export class UsersController {
                 }
             };
         } catch (error) {
-            return {
-                success: false,
-                error: error.message
-            };
+            throw new BadRequestException(
+                {
+                    "error": error.message
+                }
+            )
         }
     }
 
@@ -67,10 +70,7 @@ export class UsersController {
     async findOne(@Param('id') id: string) {
         const user = await this.usersService.findById(id);
         if (!user) {
-            return {
-                success: false,
-                error: 'User not found'
-            };
+            throw NotFoundException
         }
         return {
             success: true,
@@ -98,27 +98,24 @@ export class UsersController {
                 }
             };
         } catch (error) {
-            return {
-                success: false,
-                error: error.message
-            };
+            throw new InternalServerErrorException
         }
     }
 
     @UseGuards(JwtAuthGuard, OwnershipGuard)
     @Delete(':id')
-    async remove(@Param('id') id: string) {
+    async remove(
+        @Param('id') id: string,
+        @Body() body: { deviceId: string; apiKey: string }
+    ) {
         try {
-            await this.usersService.delete(id);
+            await this.usersService.delete(id, body.deviceId, body.apiKey);
             return {
                 success: true,
-                message: 'User deleted successfully'
+                message: 'User and associated fingerprints deleted successfully. Commands sent to device.'
             };
         } catch (error) {
-            return {
-                success: false,
-                error: error.message
-            };
+            throw new InternalServerErrorException(error.message);
         }
     }
 
@@ -126,10 +123,7 @@ export class UsersController {
     async login(@Body() loginDto: { name: string; password: string }) {
         const user = await this.usersService.validateUser(loginDto.name, loginDto.password);
         if (!user) {
-            return {
-                success: false,
-                error: 'Invalid credentials'
-            };
+            throw new NotFoundException
         }
         return {
             success: true,

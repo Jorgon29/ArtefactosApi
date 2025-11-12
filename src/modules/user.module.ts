@@ -9,6 +9,7 @@ import { OwnershipGuard } from '../auth/ownership.guard';
 import { AdminGuard } from '../auth/admin_guard';
 import { FingerprintService } from '../services/fingerprint.service';
 import { Fingerprint, FingerprintSchema } from '../models/fingerprint.schema';
+import { MqttService } from '../services/mqtt.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { Fingerprint, FingerprintSchema } from '../models/fingerprint.schema';
     }),
   ],
   controllers: [UsersController],
-  providers: [UserService, JwtAuthGuard, OwnershipGuard, AdminGuard, FingerprintService],
+  providers: [UserService, JwtAuthGuard, OwnershipGuard, AdminGuard, FingerprintService, MqttService],
   exports: [
     UserService,
     JwtModule,

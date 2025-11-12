@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 
 import { Fingerprint, FingerprintSchema, FingerprintDocument } from '../models/fingerprint.schema';
 import { User, UserDocument } from '../models/user.schema';
+import { MqttService } from './mqtt.service';
 
 const MAX_FINGERPRINT_ID = 999;
 
@@ -12,6 +13,7 @@ export class FingerprintService {
   constructor(
     @InjectModel(Fingerprint.name) private fingerprintModel: Model<FingerprintDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly mqttService: MqttService,
   ) {}
   async claimNewFingerprintId(userId: string): Promise<number> {
     const user = await this.userModel.findById(userId);
@@ -62,5 +64,19 @@ export class FingerprintService {
       { _id: userId },
       { $pull: { fingerprints: fingerprintId } },
     ).exec();
+  }
+
+  async deleteAllFingerprintsByUser(userId: string, deviceId: string, apiKey: string): Promise<void> {
+    const fingerprints = await this.fingerprintModel.find({ userId }).exec();
+    await Promise.allSettled(fingerprints.map(fp => {
+      return this.mqttService.sendCommand(
+        deviceId,
+        apiKey,
+        'DELETE',
+        { fingerprintId: fp.id }
+      );
+    }));
+
+    await this.fingerprintModel.deleteMany({ userId }).exec();
   }
 }

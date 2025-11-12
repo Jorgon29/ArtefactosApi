@@ -4,12 +4,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../models/user.schema';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { FingerprintService } from './fingerprint.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private readonly fingerprintService: FingerprintService,
   ) { }
 
   async create(userData: Partial<User>): Promise<UserDocument> {
@@ -38,7 +40,7 @@ export class UserService {
       ...userData,
       isAdmin: true
     });
-    
+
     return user.save();
   }
 
@@ -51,7 +53,7 @@ export class UserService {
   }
 
   async findByName(username: string): Promise<UserDocument | null> {
-    const user = await this.userModel.findOne( {name: username});
+    const user = await this.userModel.findOne({ name: username });
     if (!user) {
       return null;
     }
@@ -64,7 +66,7 @@ export class UserService {
 
   async validateUser(name: string, password: string): Promise<{ access_token: string }> {
     const user = await this.userModel.findOne({ name }).select('+isAdmin').exec();
-    
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -74,12 +76,12 @@ export class UserService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { 
-      userId: user._id, 
+    const payload = {
+      userId: user._id,
       username: user.name,
       isAdmin: user.isAdmin
     };
-    
+
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
@@ -89,7 +91,10 @@ export class UserService {
     return this.userModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
   }
 
-  async delete(id: string): Promise<void> {
-    await this.userModel.findByIdAndDelete(id).exec();
+  async delete(userId: string, deviceId: string, apiKey: string): Promise<void> {
+
+    await this.fingerprintService.deleteAllFingerprintsByUser(userId, deviceId, apiKey);
+
+    await this.userModel.findByIdAndDelete(userId).exec();
   }
 }

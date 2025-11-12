@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Headers, UnauthorizedException, UseGuards, Delete, Param, BadRequestException } from '@nestjs/common';
 import { MqttService } from '../services/mqtt.service';
-import { JwtAuthGuard } from 'src/auth/auth.guard';
+import { JwtAuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
 import { FingerprintService } from '../services/fingerprint.service';
 import { AdminGuard } from '../auth/admin_guard';
