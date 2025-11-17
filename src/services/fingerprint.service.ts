@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, InternalServerErrorException, forwardRef, Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -13,6 +13,7 @@ export class FingerprintService {
   constructor(
     @InjectModel(Fingerprint.name) private fingerprintModel: Model<FingerprintDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @Inject(forwardRef(() => MqttService))
     private readonly mqttService: MqttService,
   ) {}
   async claimNewFingerprintId(userId: string): Promise<number> {
@@ -78,5 +79,23 @@ export class FingerprintService {
     }));
 
     await this.fingerprintModel.deleteMany({ userId }).exec();
+  }
+
+  async releaseFingerprintIdOnFailure(fingerprintId: number): Promise<void> {
+    const fingerprintDoc = await this.fingerprintModel.findOne({ id: fingerprintId }).exec();
+    if (!fingerprintDoc) {
+      console.warn(`Rollback: Fingerprint ID ${fingerprintId} was already deleted.`);
+      return;
+    }
+
+    const userId = fingerprintDoc.userId.toString();
+    await this.fingerprintModel.deleteOne({ id: fingerprintId }).exec();
+
+    await this.userModel.updateOne(
+      { _id: userId },
+      { $pull: { fingerprints: fingerprintId } },
+    ).exec();
+    
+    console.log(`Rollback: Successfully released FID ${fingerprintId} from user ${userId}.`);
   }
 }
