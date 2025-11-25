@@ -17,4 +17,6 @@ export default () => ({
       esp32_001: process.env.ESP32_API_KEY_001 || 'secret-esp32-api-key-123',
     },
   },
+  telegram_token: process.env.TELEGRAM_TOKEN || 'useless-mock-token',
+  telegram_id: process.env.TELEGRAM_ID || 'useless-mock-id'
 });

@@ -16,6 +16,8 @@ import { UserService } from '../services/user.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { OwnershipGuard } from '../auth/ownership.guard';
 import { AdminGuard } from '../auth/admin_guard';
+import { User } from '../auth/user.decorator';
+import { FingerprintService } from '../services/fingerprint.service';
 
 class CreateUserDto {
     name: string;
@@ -29,7 +31,10 @@ class UpdateUserDto {
 
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UserService) { }
+    constructor(
+        private readonly usersService: UserService,
+        private readonly fingerprintsService: FingerprintService
+    ) { }
 
     @UseGuards(JwtAuthGuard, AdminGuard)
     @Post()
@@ -52,7 +57,7 @@ export class UsersController {
         }
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, AdminGuard)
     @Get()
     async findAll() {
         const users = await this.usersService.findAll();
@@ -132,4 +137,47 @@ export class UsersController {
             }
         };
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('fingerprints')
+    async findUserFingerprints(
+        @User('userId') userId: string,
+    ){
+        try {
+            const fingerprints = await this.fingerprintsService.findAllByUserId(userId);
+            if (!fingerprints) {
+                throw new NotFoundException
+            }
+            return {
+            success: true,
+            data: fingerprints.map(finger => ({
+                id: finger.id
+            }))
+        };
+        } catch (error) {
+
+        }
+    }
+
+    @UseGuards(JwtAuthGuard, AdminGuard)
+    @Get('fingerprints/:id')
+    async findFingerprintsById(
+        @Param('id') id: string
+    ){
+        try {
+            const fingerprints = await this.fingerprintsService.findAllByUserId(id);
+            if (!fingerprints) {
+                throw new NotFoundException
+            }
+            return {
+            success: true,
+            data: fingerprints.map(finger => ({
+                id: finger.id
+            }))
+        };
+        } catch (error) {
+
+        }
+    }
+
 }
