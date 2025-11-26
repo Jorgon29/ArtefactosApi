@@ -2,8 +2,6 @@ import { Injectable, OnModuleInit, OnModuleDestroy, Logger, forwardRef, Inject }
 import { ConfigService } from '@nestjs/config';
 import * as mqtt from 'mqtt';
 import { FingerprintService } from './fingerprint.service';
-import axios from 'axios';
-import * as config from '../config/config';
 
 interface AppConfig {
 	mqtt: {
