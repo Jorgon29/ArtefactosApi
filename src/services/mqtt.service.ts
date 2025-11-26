@@ -2,6 +2,8 @@ import { Injectable, OnModuleInit, OnModuleDestroy, Logger, forwardRef, Inject }
 import { ConfigService } from '@nestjs/config';
 import * as mqtt from 'mqtt';
 import { FingerprintService } from './fingerprint.service';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface AppConfig {
 	mqtt: {
@@ -52,9 +54,14 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 			return;
 		}
 
+		const caFile = fs.readFileSync(path.join(process.cwd(), 'certs/ca.crt'));
+
 		const options: mqtt.IClientOptions = {
-			port: 1883,
-		};
+            port: 8883,
+            protocol: 'mqtts',
+            ca: [caFile],
+            rejectUnauthorized: true,
+        };
 
 		if (mqttConfig.username && mqttConfig.password) {
 			options.username = mqttConfig.username;

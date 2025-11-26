@@ -4,7 +4,7 @@ export default () => ({
   },
 
   mqtt: {
-    url: process.env.MQTT_URL || 'mqtt://localhost:1883',
+    url: process.env.MQTT_URL || 'mqtts://localhost:8883',
     username: process.env.MQTT_USERNAME || 'admin',
     password: process.env.MQTT_PASSWORD || 'secure_mqtt_password_123',
   },
