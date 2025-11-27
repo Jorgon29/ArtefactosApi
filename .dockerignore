@@ -1,0 +1,30 @@
+# Dependencies and logs
+
+/node_modules
+/npm-debug.log
+/yarn-error.log
+
+# Build artifacts (these are recreated inside the container)
+
+/dist
+/coverage
+/build
+
+# Editor and IDE
+
+.git
+.gitignore
+.editorconfig
+.idea
+*.log
+
+# Environment variables (security risk if included)
+
+.env
+.env.*
+
+# Static files copied to image (avoid copying to build context)
+
+/certs/.key
+/certs/.csr
+!/certs/ca.crt

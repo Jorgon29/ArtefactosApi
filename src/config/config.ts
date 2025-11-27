@@ -4,7 +4,7 @@ export default () => ({
   },
 
   mqtt: {
-    url: process.env.MQTT_URL || 'mqtt://localhost:1883',
+    url: process.env.MQTT_URL || 'mqtts://localhost:8883',
     username: process.env.MQTT_USERNAME || 'admin',
     password: process.env.MQTT_PASSWORD || 'secure_mqtt_password_123',
   },
@@ -17,4 +17,6 @@ export default () => ({
       esp32_001: process.env.ESP32_API_KEY_001 || 'secret-esp32-api-key-123',
     },
   },
+  telegram_token: process.env.TELEGRAM_TOKEN || 'useless-mock-token',
+  telegram_id: process.env.TELEGRAM_ID || 'useless-mock-id'
 });

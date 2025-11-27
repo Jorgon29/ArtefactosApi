@@ -11,7 +11,7 @@ export class OwnershipGuard implements CanActivate {
       return true;
     }
 
-    if (user.sub !== requestedUserId) {
+    if (user.userId !== requestedUserId) {
       throw new ForbiddenException('You can only access your own data');
     }
 

@@ -5,6 +5,7 @@ import configuration from './config/config';
 import { UsersModule } from './modules/user.module';
 import { MqttModule } from './modules/mqtt.module';
 import { CommandsController } from './controllers/commands.controlller';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
