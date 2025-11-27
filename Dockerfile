@@ -23,4 +23,7 @@ COPY ./certs/ca.crt ./certs/ca.crt
 
 EXPOSE 3000
 
-CMD [ "node", "dist/main" ]
+COPY docker-startup.sh ./
+RUN chmod +x docker-startup.sh
+
+CMD [ "./docker-startup.sh" ]
